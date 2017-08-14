@@ -107,8 +107,8 @@ public class LastActivity extends AppCompatActivity {
             Imgproc.cvtColor(Mat_All.get(i), Mat_All.get(i), Imgproc.COLOR_RGB2GRAY);
             Core.inRange(Mat_All.get(i),LOWER_RED1,LOWER_RED2,Mat_All.get(i));
 
-            Imgproc.erode(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(20,20)));
-            Imgproc.dilate(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15,15)));
+            Imgproc.erode(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15,15)));
+            Imgproc.dilate(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(25,25)));
         }
         return Mat_All;
     }

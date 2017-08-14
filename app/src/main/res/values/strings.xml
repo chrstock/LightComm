@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LightComm</string>
+    <string name="app_name">LightComm2</string>
     <string name="str_txt_description">Please hold the Smartphone against the mC-Display and press
         the Record-Button</string>
     <string name="str_btn_record">Record</string>

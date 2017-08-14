@@ -34,7 +34,7 @@ public class Calculations {
         List<Moments> mu = new ArrayList<>(MoP_contours.size());
 
         for(int i = 0; i<MoP_contours.size();i++){
-            mu.add(i, Imgproc.moments(MoP_contours.get(i)));
+            mu.add(i, Imgproc.contourMoments(MoP_contours.get(i)));
             Moments p = mu.get(i);
             x.add((int) (p.get_m10() / p.get_m00()));
             y.add((int) (p.get_m01() / p.get_m00()));
