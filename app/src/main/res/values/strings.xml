@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">LightComm</string>
+    <string name="str_txt_description">Please hold the Smartphone against the mC-Display and press
+        the Record-Button</string>
+    <string name="str_btn_record">Record</string>
+    <string name="str_btn_translate">Translate</string>
+    <string name="str_rad_Picture">Picture</string>
+
+    <!--Toasts in Activity-->
+    <string name="tst_recordSuccess">Video successfully saved</string>
+    <string name="tst_recordFailed">Record failed</string>
+    <string name="tst_recordAborted">Record aborted</string>
+</resources>
