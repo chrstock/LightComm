@@ -21,14 +21,23 @@ public class Calculations {
 
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
-    public ArrayList<Point> calculateBoundingBoxCenter(ArrayList<Mat> Bitmaps)
+    public ArrayList<Double> calculateSignal(ArrayList<Mat> Bitmaps){
+
+        calculateBoundingBoxCenter(Bitmaps);
+
+        calculateAllDistances();
+
+        return calculateAllDistances();
+    }
+
+    public void calculateBoundingBoxCenter(ArrayList<Mat> Bitmaps)
     {
         List<MatOfPoint> MoP_contours = new ArrayList<>();
         Mat Mat_hierarchy = new Mat();
         ArrayList<Integer> x = new ArrayList<>();
         ArrayList<Integer> y = new ArrayList<>();
 
-        Imgproc.findContours(Bitmaps.get(1), MoP_contours,Mat_hierarchy,Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(Bitmaps.get(0), MoP_contours,Mat_hierarchy,Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
         Mat_hierarchy.release();
 
         List<Moments> mu = new ArrayList<>(MoP_contours.size());
@@ -38,11 +47,10 @@ public class Calculations {
             Moments p = mu.get(i);
             x.add((int) (p.get_m10() / p.get_m00()));
             y.add((int) (p.get_m01() / p.get_m00()));
-            Coordinates.add(i,new Point(x.get(i),y.get(i)));
+            Coordinates.add(new Point(x.get(i),y.get(i)));
         }
-        return Coordinates;
     }
-    public ArrayList<Double> calculateAllDistances(ArrayList<Point> P){
+    public ArrayList<Double> calculateAllDistances(){
 
         double x1,x0,y1,y0;
 
@@ -84,12 +92,12 @@ public class Calculations {
         int token1=0;
         int token2=0;
 
-        for(int i=0;i<P.size();i++) {
-            a0=P.get(i).x;
-            b0=P.get(i).y;
-            for(int j=0;j<P.size();j++) {
-                a1=P.get(j).x;
-                b1=P.get(j).y;
+        for(int i=0;i<Coordinates.size();i++) {
+            a0=Coordinates.get(i).x;
+            b0=Coordinates.get(i).y;
+            for(int j=0;j<Coordinates.size();j++) {
+                a1=Coordinates.get(j).x;
+                b1=Coordinates.get(j).y;
                 dou_root=Math.sqrt(((a0-a1)*(a0-a1))+((b0-b1)*(b0-b1)));
 
                 if(dou_root==dist.get(0)&&token1==0) {
@@ -118,8 +126,8 @@ public class Calculations {
         int del2=0;
 
         for(int i=0;i<iV.size();i++) {
-            x = P.get(iV.get(i)).x;
-            y = P.get(iV.get(i)).y;
+            x = Coordinates.get(iV.get(i)).x;
+            y = Coordinates.get(iV.get(i)).y;
             Sum=Math.sqrt((x*x)+(y*y));
 
             if(Sum>xHigh) {
@@ -144,8 +152,8 @@ public class Calculations {
         }
 
 
-        double x1 = P.get(iV.get(0)).x;
-        double x2 = P.get(iV.get(1)).x;
+        double x1 = Coordinates.get(iV.get(0)).x;
+        double x2 = Coordinates.get(iV.get(1)).x;
 
         if(x1>x2){
             detIndex.set(1, iV.get(0));
@@ -161,11 +169,11 @@ public class Calculations {
         ArrayList<Double> column = new ArrayList<>();
 
         double Difference;
-        double Ax = P.get(dI.get(0)).x;
-        double Cx = P.get(dI.get(2)).x;
+        double Ax = Coordinates.get(dI.get(0)).x;
+        double Cx = Coordinates.get(dI.get(2)).x;
 
-        double Bx = P.get(dI.get(1)).x;
-        double Dx = P.get(dI.get(3)).x;
+        double Bx = Coordinates.get(dI.get(1)).x;
+        double Dx = Coordinates.get(dI.get(3)).x;
         //Spalte 0 berechnen mit Abstand durch cleveres Runden
 
         for(int i=0;i<10;i++) {
@@ -193,10 +201,10 @@ public class Calculations {
         ArrayList<Double> column = new ArrayList<>();
 
         double Difference;
-        double Ay = P.get(dI.get(0)).y;
-        double By = P.get(dI.get(1)).y;
-        double Cy = P.get(dI.get(2)).y;
-        double Dy = P.get(dI.get(3)).y;
+        double Ay = Coordinates.get(dI.get(0)).y;
+        double By = Coordinates.get(dI.get(1)).y;
+        double Cy = Coordinates.get(dI.get(2)).y;
+        double Dy = Coordinates.get(dI.get(3)).y;
 
         for(int i=0;i<10;i++) {
             if(columnCount==0){
