@@ -58,19 +58,10 @@ public class LastActivity extends AppCompatActivity {
 
         //Calculate Points
         Mat_Pictures = bitmapToMat (Bmp_NewPictures.get(0));
-        //Calculate Edges
-//        distances = C.calculateAllDistances(Poi_Coordinates);
 
+        dou_distanceSort = C.calculateSignal(Mat_Pictures);
+//        Bmp_NewPictures = C.Morph(Mat_Pictures, Bmp_NewPictures);
 
-
-        distances = C.calculateSignal(Mat_Pictures);
-
-//        C.calculateSignal(Mat_Pictures);
-
-        Bmp_NewPictures = C.Morph(Mat_Pictures, Bmp_NewPictures);
-
-
-        dou_distanceSort = C.calculateFourBiggestDistances(distances);
         indexValue = C.determiningTwoEdgePairs(Poi_Coordinates,dou_distanceSort);
         det_indexValue = C.determingAllEdgePositions(Poi_Coordinates,indexValue);
         Col0x  = C.calculateColumnX(Poi_Coordinates,det_indexValue,0);

@@ -2,6 +2,7 @@ package stock_christian.lightcomm;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.AudioManager;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -23,14 +24,12 @@ public class Calculations {
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
     public ArrayList<Double> calculateSignal(ArrayList<Mat> Bitmaps){
-//      public void calculateSignal(ArrayList<Mat> Bitmaps){
-
 
         calculateBoundingBoxCenter(Bitmaps);
 
         calculateAllDistances();
 
-        return calculateAllDistances();
+        return calculateFourBiggestDistances();
     }
 
     public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats)
@@ -41,8 +40,6 @@ public class Calculations {
         Mat Mat_hierarchy = new Mat();
 
         for (int i = 0; i<AllMats.size(); i++){
-
-
 
             if(i==0){
                 List<MatOfPoint> MoP_contours = new ArrayList<>();
@@ -66,26 +63,30 @@ public class Calculations {
     public ArrayList<Double> calculateAllDistances(){
 
         double x1,x0,y1,y0;
+        int Anzahl = Coordinates.size();
 
-        for(int i = 5; i< Coordinates.size(); i++) {
+        for(int i = 0;i<(Anzahl-1); i++ ){
             x1= Coordinates.get(i).x;
             y1= Coordinates.get(i).y;
-            for (int j = 0; j < Coordinates.size(); j++) {
+            for (int j = (i+1);j<Anzahl;j++) {
                 x0= Coordinates.get(j).x;
                 y0= Coordinates.get(j).y;
                 distanceList.add(Math.sqrt(((x1-x0)*(x1-x0))+((y1-y0)*(y1-y0))));
             }
         }
+
         return distanceList;
     }
 
-    public ArrayList<Double> calculateFourBiggestDistances(ArrayList<Double> distances){
+    public ArrayList<Double> calculateFourBiggestDistances(){
 
+
+        // Next Steps...
         double longestDistance = 0.0;
 
         ArrayList<Double> longestDistanceList = new ArrayList<>();
         int index=0;
-        for(int i=0;i<4;i++) {
+        for(int i=0;i<2;i++) {
             for (int j = 0; j < distanceList.size(); j++) {
                 if (distanceList.get(j) > longestDistance) {
                     longestDistance = distanceList.get(j);
@@ -118,7 +119,7 @@ public class Calculations {
                     index.add(j);
                     token1++;
                 }
-                if(dou_root==dist.get(2)&&token2==0) {
+                if(dou_root==dist.get(1)&&token2==0) {
                     index.add(i);
                     index.add(j);
                     token2++;
