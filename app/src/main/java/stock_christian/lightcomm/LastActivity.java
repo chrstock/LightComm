@@ -7,7 +7,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 
 public class LastActivity extends AppCompatActivity {
 
-    private Scalar LOWER_RED1 = new Scalar(210);
+    private Scalar LOWER_RED1 = new Scalar(220);
     private Scalar LOWER_RED2 = new Scalar(255);
 
     private ImageView mImage;
@@ -59,7 +61,14 @@ public class LastActivity extends AppCompatActivity {
         //Calculate Edges
 //        distances = C.calculateAllDistances(Poi_Coordinates);
 
+
+
         distances = C.calculateSignal(Mat_Pictures);
+
+//        C.calculateSignal(Mat_Pictures);
+
+        Bmp_NewPictures = C.Morph(Mat_Pictures, Bmp_NewPictures);
+
 
         dou_distanceSort = C.calculateFourBiggestDistances(distances);
         indexValue = C.determiningTwoEdgePairs(Poi_Coordinates,dou_distanceSort);
@@ -74,7 +83,6 @@ public class LastActivity extends AppCompatActivity {
 
         //Connect Router
         mText.setText(PSK);
-        mImage.setImageBitmap(Bmp_NewPictures.get(0));
     }
 
     @Override
@@ -89,28 +97,27 @@ public class LastActivity extends AppCompatActivity {
         ArrayList<Mat> Mat_All = new ArrayList<>();
         String filename;
 
-        //Mat_All.add(new Mat((bmp.getHeight()),bmp.getWidth(),CvType.CV_8UC3));
+        Mat_All.add(new Mat((bmp.getHeight()),bmp.getWidth(), CvType.CV_8UC3));
 
         for(int i=0;i<6;i++){
 
             filename=fullPath+i+".png";
-            /*
+
             if(i==0){
                 Utils.bitmapToMat(bmp,Mat_All.get(0));
             }
             else {
-                Mat_All.add(i,Highgui.imread(filename));
+                Mat_All.add(i,Imgcodecs.imread(filename));
             }
-            */
 
-            Mat_All.add(i, Imgcodecs.imread(filename));
+//            Mat_All.add(Imgcodecs.imread(filename));
 
             Imgproc.GaussianBlur(Mat_All.get(i), Mat_All.get(i), new Size(3,3),10);
             Imgproc.cvtColor(Mat_All.get(i), Mat_All.get(i), Imgproc.COLOR_RGB2GRAY);
             Core.inRange(Mat_All.get(i),LOWER_RED1,LOWER_RED2,Mat_All.get(i));
 
-            Imgproc.erode(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(15,15)));
-            Imgproc.dilate(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(25,25)));
+            Imgproc.erode(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10,10)));
+            Imgproc.dilate(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(30,30)));
         }
         return Mat_All;
     }

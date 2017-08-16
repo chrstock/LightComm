@@ -7,6 +7,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
@@ -22,6 +23,8 @@ public class Calculations {
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
     public ArrayList<Double> calculateSignal(ArrayList<Mat> Bitmaps){
+//      public void calculateSignal(ArrayList<Mat> Bitmaps){
+
 
         calculateBoundingBoxCenter(Bitmaps);
 
@@ -30,31 +33,41 @@ public class Calculations {
         return calculateAllDistances();
     }
 
-    public void calculateBoundingBoxCenter(ArrayList<Mat> Bitmaps)
+    public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats)
     {
-        List<MatOfPoint> MoP_contours = new ArrayList<>();
-        Mat Mat_hierarchy = new Mat();
         ArrayList<Integer> x = new ArrayList<>();
         ArrayList<Integer> y = new ArrayList<>();
 
-        Imgproc.findContours(Bitmaps.get(0), MoP_contours,Mat_hierarchy,Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        Mat_hierarchy.release();
+        Mat Mat_hierarchy = new Mat();
 
-        List<Moments> mu = new ArrayList<>(MoP_contours.size());
+        for (int i = 0; i<AllMats.size(); i++){
 
-        for(int i = 0; i<MoP_contours.size();i++){
-            mu.add(i, Imgproc.contourMoments(MoP_contours.get(i)));
-            Moments p = mu.get(i);
-            x.add((int) (p.get_m10() / p.get_m00()));
-            y.add((int) (p.get_m01() / p.get_m00()));
-            Coordinates.add(new Point(x.get(i),y.get(i)));
+
+
+            if(i==0){
+                List<MatOfPoint> MoP_contours = new ArrayList<>();
+                Imgproc.findContours(AllMats.get(i), MoP_contours,Mat_hierarchy,0, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
+                Imgproc.drawContours(AllMats.get(i),MoP_contours,-1,new Scalar(255, 255, 255),-1);
+
+                List<Moments> mu = new ArrayList<>(MoP_contours.size());
+                for(int j = 0; j<MoP_contours.size();j++) {
+                    mu.add(j, Imgproc.contourMoments(MoP_contours.get(j)));
+                    Moments p = mu.get(j);
+                    x.add((int) (p.get_m10() / p.get_m00()));
+                    y.add((int) (p.get_m01() / p.get_m00()));
+                    Coordinates.add(new Point(x.get(j), y.get(j)));
+                }
+            }
+
         }
+        Mat_hierarchy.release();
     }
+
     public ArrayList<Double> calculateAllDistances(){
 
         double x1,x0,y1,y0;
 
-        for(int i = 0; i< Coordinates.size(); i++) {
+        for(int i = 5; i< Coordinates.size(); i++) {
             x1= Coordinates.get(i).x;
             y1= Coordinates.get(i).y;
             for (int j = 0; j < Coordinates.size(); j++) {
@@ -252,6 +265,15 @@ public class Calculations {
             }
         }
         return AllPoints;
+    }
+
+    public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
+
+        for (int i = 0; i<AllMats.size(); i++){
+            Utils.matToBitmap(AllMats.get(i),Bit.get(i));
+        }
+
+        return Bit;
     }
 
     public String calculateLightToBitSequence(ArrayList<Point> AllPoints,ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
