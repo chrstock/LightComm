@@ -2,7 +2,6 @@ package stock_christian.lightcomm;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.media.AudioManager;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -14,26 +13,62 @@ import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Calculations {
 
+    public class DistancesWithPoints {
+
+        public DistancesWithPoints (Point sp,Point ep,Double di){
+            StartPoint = sp;
+            EndPoint   = ep;
+            Distance   = di;
+            Position   = "";
+        }
+
+        public Point StartPoint = new Point();
+        public Point EndPoint = new Point();
+        public Double Distance;
+        public String Position;
+    }
+
     private ArrayList<Point> Coordinates = new ArrayList<>();
     private ArrayList<Double> distanceList = new ArrayList<>();
 
+
+    private HashMap<Integer, DistancesWithPoints> DistanceWithPointsList = new HashMap<>();
+    private HashMap<String, Point> SquarePoints = new HashMap<>();
+
+    ArrayList<Double> C0x;
+    ArrayList<Double> C0y;
+    ArrayList<Double> C11x;
+    ArrayList<Double> C11y;
+
+    ArrayList<Point> AllPoints = new ArrayList<>();
+
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
-    public ArrayList<Double> calculateSignal(ArrayList<Mat> Bitmaps){
+    public String calculateSignal(ArrayList<Mat> Bitmaps, ArrayList<Bitmap> AllBitmaps){
 
         calculateBoundingBoxCenter(Bitmaps);
 
         calculateAllDistances();
 
-        return calculateFourBiggestDistances();
+        determingPointsInSquare();
+
+        C0x  = calculateColumnX(0);
+        C0y  = calculateColumnY(0);
+        C11x = calculateColumnX(11);
+        C11y = calculateColumnY(11);
+
+        calculateAllPoints();
+
+        return calculateLightToBitSequence(Bitmaps,AllBitmaps);
+
     }
 
-    public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats)
-    {
+    public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats){
         ArrayList<Integer> x = new ArrayList<>();
         ArrayList<Integer> y = new ArrayList<>();
 
@@ -60,10 +95,13 @@ public class Calculations {
         Mat_hierarchy.release();
     }
 
-    public ArrayList<Double> calculateAllDistances(){
+    public void calculateAllDistances(){
 
         double x1,x0,y1,y0;
         int Anzahl = Coordinates.size();
+        Double Distance;
+        Double FirstBiggestDistance = 0.0;
+        Double SecondBiggestDistance= 0.0;
 
         for(int i = 0;i<(Anzahl-1); i++ ){
             x1= Coordinates.get(i).x;
@@ -72,122 +110,86 @@ public class Calculations {
                 x0= Coordinates.get(j).x;
                 y0= Coordinates.get(j).y;
                 distanceList.add(Math.sqrt(((x1-x0)*(x1-x0))+((y1-y0)*(y1-y0))));
-            }
-        }
+                Distance = Math.sqrt(((x1-x0)*(x1-x0))+((y1-y0)*(y1-y0)));
+                if ( Distance > FirstBiggestDistance){
 
-        return distanceList;
-    }
+                    if(FirstBiggestDistance != 0.0)
+                        DistanceWithPointsList.put(1,DistanceWithPointsList.get(0));
 
-    public ArrayList<Double> calculateFourBiggestDistances(){
-
-
-        // Next Steps...
-        double longestDistance = 0.0;
-
-        ArrayList<Double> longestDistanceList = new ArrayList<>();
-        int index=0;
-        for(int i=0;i<2;i++) {
-            for (int j = 0; j < distanceList.size(); j++) {
-                if (distanceList.get(j) > longestDistance) {
-                    longestDistance = distanceList.get(j);
-                    index = j;
-                }
-            }
-            longestDistanceList.add(longestDistance);
-            distanceList.set(index, 0.0);
-            longestDistance = 0.0;
-        }
-        return longestDistanceList;
-    }
-
-    public ArrayList<Integer> determiningTwoEdgePairs(ArrayList<Point> P, ArrayList<Double> dist){
-        ArrayList<Integer> index = new ArrayList<>();
-        double dou_root,a0,a1,b0,b1;
-        int token1=0;
-        int token2=0;
-
-        for(int i=0;i<Coordinates.size();i++) {
-            a0=Coordinates.get(i).x;
-            b0=Coordinates.get(i).y;
-            for(int j=0;j<Coordinates.size();j++) {
-                a1=Coordinates.get(j).x;
-                b1=Coordinates.get(j).y;
-                dou_root=Math.sqrt(((a0-a1)*(a0-a1))+((b0-b1)*(b0-b1)));
-
-                if(dou_root==dist.get(0)&&token1==0) {
-                    index.add(i);
-                    index.add(j);
-                    token1++;
-                }
-                if(dou_root==dist.get(1)&&token2==0) {
-                    index.add(i);
-                    index.add(j);
-                    token2++;
+                    DistanceWithPointsList.put(0,new DistancesWithPoints(new Point(x1,y1),new Point(x0,y0),Distance));
+                    SecondBiggestDistance = FirstBiggestDistance;
+                    FirstBiggestDistance = Distance;
+                }else{
+                    if ( Distance > SecondBiggestDistance){
+                        DistanceWithPointsList.put(1,new DistancesWithPoints(new Point(x1,y1),new Point(x0,y0),Distance));
+                        SecondBiggestDistance = Distance;
+                    }
                 }
             }
         }
-        return index;
     }
 
-    public ArrayList<Integer> determingAllEdgePositions(ArrayList<Point> P, ArrayList<Integer> iV){
+    public void determingPointsInSquare(){
 
-        ArrayList<Integer> detIndex = new ArrayList<>(Arrays.asList(0,0,0,0));
+        double NearDistanceOrigin = 2000.0;
+        double FarDistanceOrigin = 0.0;
+        double Distance;
 
-        double xHigh=0.0;
-        double xLow=2000.0;
-        double Sum,x,y;
-        int del1=0;
-        int del2=0;
 
-        for(int i=0;i<iV.size();i++) {
-            x = Coordinates.get(iV.get(i)).x;
-            y = Coordinates.get(iV.get(i)).y;
-            Sum=Math.sqrt((x*x)+(y*y));
-
-            if(Sum>xHigh) {
-                xHigh=Sum;
-                detIndex.set(3,iV.get(i));
-                del1=i;
+        //Calculate Highest Distance to Origin = D and Nearest = A
+        for (int i=0;i<2;i++){
+            Distance = Math.sqrt(Math.pow(DistanceWithPointsList.get(i).StartPoint.x,2)+Math.pow(DistanceWithPointsList.get(i).StartPoint.y,2));
+            if (Distance < NearDistanceOrigin) {
+                NearDistanceOrigin = Distance;
+                SquarePoints.put("A",DistanceWithPointsList.get(i).StartPoint);
             }
-            if(Sum<xLow) {
-                xLow=Sum;
-                detIndex.set(0,iV.get(i));
-                del2=i;
+
+            if (Distance > FarDistanceOrigin) {
+                FarDistanceOrigin = Distance;
+                SquarePoints.put("D",DistanceWithPointsList.get(i).StartPoint);
+            }
+
+            Distance =  Math.sqrt(Math.pow(DistanceWithPointsList.get(i).EndPoint.x,2)+Math.pow(DistanceWithPointsList.get(i).EndPoint.y,2));
+            if (Distance < NearDistanceOrigin) {
+                NearDistanceOrigin = Distance;
+                SquarePoints.put("A", DistanceWithPointsList.get(i).EndPoint);
+            }
+
+            if (Distance > FarDistanceOrigin) {
+                FarDistanceOrigin = Distance;
+                SquarePoints.put("D",DistanceWithPointsList.get(i).EndPoint);
+            }
+
+        }
+
+        if (SquarePoints.containsValue(DistanceWithPointsList.get(0).StartPoint) || (SquarePoints.containsValue(DistanceWithPointsList.get(0).EndPoint))){
+            if (DistanceWithPointsList.get(1).StartPoint.y < DistanceWithPointsList.get(1).EndPoint.y){
+                SquarePoints.put("B",DistanceWithPointsList.get(1).StartPoint);
+                SquarePoints.put("C",DistanceWithPointsList.get(1).EndPoint);
+            } else {
+                SquarePoints.put("C",DistanceWithPointsList.get(1).StartPoint);
+                SquarePoints.put("B",DistanceWithPointsList.get(1).EndPoint);
             }
         }
-        //0,33,1,34
-        //
-        if(del1>del2) {
-            iV.remove(del1);
-            iV.remove(del2);
-        }else{
-            iV.remove(del2);
-            iV.remove(del1);
+        else {
+            if (DistanceWithPointsList.get(0).StartPoint.y < DistanceWithPointsList.get(0).EndPoint.y){
+                SquarePoints.put("B",DistanceWithPointsList.get(0).StartPoint);
+                SquarePoints.put("C",DistanceWithPointsList.get(0).EndPoint);
+            } else {
+                SquarePoints.put("C",DistanceWithPointsList.get(0).StartPoint);
+                SquarePoints.put("B",DistanceWithPointsList.get(0).EndPoint);
+            }
         }
-
-
-        double x1 = Coordinates.get(iV.get(0)).x;
-        double x2 = Coordinates.get(iV.get(1)).x;
-
-        if(x1>x2){
-            detIndex.set(1, iV.get(0));
-            detIndex.set(2, iV.get(1));
-        }else{
-            detIndex.set(2, iV.get(0));
-            detIndex.set(1, iV.get(1));
-        }
-        return detIndex;
     }
 
-    public ArrayList<Double> calculateColumnX (ArrayList<Point> P, ArrayList<Integer> dI, int columnCount) {
+    public ArrayList<Double> calculateColumnX (int columnCount) {
         ArrayList<Double> column = new ArrayList<>();
 
         double Difference;
-        double Ax = Coordinates.get(dI.get(0)).x;
-        double Cx = Coordinates.get(dI.get(2)).x;
-
-        double Bx = Coordinates.get(dI.get(1)).x;
-        double Dx = Coordinates.get(dI.get(3)).x;
+        double Ax = SquarePoints.get("A").x;
+        double Bx = SquarePoints.get("B").x;
+        double Cx = SquarePoints.get("C").x;
+        double Dx = SquarePoints.get("D").x;
         //Spalte 0 berechnen mit Abstand durch cleveres Runden
 
         for(int i=0;i<10;i++) {
@@ -210,15 +212,15 @@ public class Calculations {
         return column;
     }
 
-    public ArrayList<Double> calculateColumnY (ArrayList<Point> P, ArrayList<Integer> dI, int columnCount) {
+    public ArrayList<Double> calculateColumnY (int columnCount) {
 
         ArrayList<Double> column = new ArrayList<>();
 
         double Difference;
-        double Ay = Coordinates.get(dI.get(0)).y;
-        double By = Coordinates.get(dI.get(1)).y;
-        double Cy = Coordinates.get(dI.get(2)).y;
-        double Dy = Coordinates.get(dI.get(3)).y;
+        double Ay = SquarePoints.get("A").y;
+        double By = SquarePoints.get("B").y;
+        double Cy = SquarePoints.get("C").y;
+        double Dy = SquarePoints.get("D").y;
 
         for(int i=0;i<10;i++) {
             if(columnCount==0){
@@ -240,9 +242,7 @@ public class Calculations {
         return column;
     }
 
-    public ArrayList<Point> calculateAllPoints(ArrayList<Double> C0x,ArrayList<Double> C0y,ArrayList<Double> C11x,ArrayList<Double> C11y){
-
-        ArrayList<Point> AllPoints = new ArrayList<>();
+    public void calculateAllPoints(){
 
         double Diffx,Diffy;
         int x,y;
@@ -265,7 +265,6 @@ public class Calculations {
                 AllPoints.add(new Point(x,y));
             }
         }
-        return AllPoints;
     }
 
     public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
@@ -277,7 +276,7 @@ public class Calculations {
         return Bit;
     }
 
-    public String calculateLightToBitSequence(ArrayList<Point> AllPoints,ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
+    public String calculateLightToBitSequence(ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
 
         String bits = "";
         int x,y;

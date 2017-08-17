@@ -59,18 +59,11 @@ public class LastActivity extends AppCompatActivity {
         //Calculate Points
         Mat_Pictures = bitmapToMat (Bmp_NewPictures.get(0));
 
-        dou_distanceSort = C.calculateSignal(Mat_Pictures);
+//        C.calculateSignal(Mat_Pictures,Bmp_NewPictures);
 //        Bmp_NewPictures = C.Morph(Mat_Pictures, Bmp_NewPictures);
 
-        indexValue = C.determiningTwoEdgePairs(Poi_Coordinates,dou_distanceSort);
-        det_indexValue = C.determingAllEdgePositions(Poi_Coordinates,indexValue);
-        Col0x  = C.calculateColumnX(Poi_Coordinates,det_indexValue,0);
-        Col0y  = C.calculateColumnY(Poi_Coordinates,det_indexValue,0);
-        Col11x = C.calculateColumnX(Poi_Coordinates,det_indexValue,11);
-        Col11y = C.calculateColumnY(Poi_Coordinates,det_indexValue,11);
-        AllPoints = C.calculateAllPoints(Col0x,Col0y,Col11x,Col11y);
-        BitSequence = C.calculateLightToBitSequence(AllPoints,Mat_Pictures,Bmp_NewPictures);
-        PSK = C.calcualteBitsequenceToASCIISymbols(BitSequence);
+//        BitSequence = C.calculateLightToBitSequence(AllPoints,Mat_Pictures,Bmp_NewPictures);
+        PSK = C.calcualteBitsequenceToASCIISymbols(C.calculateSignal(Mat_Pictures,Bmp_NewPictures));
 
         //Connect Router
         mText.setText(PSK);
