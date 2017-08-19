@@ -42,26 +42,29 @@ public class Calculations {
     ArrayList<Double> C0y;
     ArrayList<Double> C11x;
     ArrayList<Double> C11y;
-
     ArrayList<Point> AllPoints;
+
+    String CountBit;
 
     public String calculateSignal(ArrayList<Mat> AllMats, ArrayList<Bitmap> AllBitmaps){
         int count = 0;
+        int PSK_order = 0;
 
         String PSK = "";
         String Bits;
+
+        HashMap<Integer,String> PSKSorted = new HashMap<>();
 
 
 
         for(Mat SingleMat: AllMats){
 
+            PSK_order = 6;
+
             AllPoints = new ArrayList<Point>();
             Coordinates = new ArrayList<Point>();
             distanceList = new ArrayList<Double>();
             DistanceWithPointsList = new HashMap<>();
-
-            Bits = "";
-
 
             calculateBoundingBoxCenter(SingleMat);
 
@@ -78,10 +81,25 @@ public class Calculations {
 
             Bits = calculateLightToBitSequence(SingleMat,AllBitmaps.get(count));
 
-            PSK = PSK + calculateBitsequenceToASCIISymbols(Bits);
+            if(CountBit.charAt(0)=='1') PSK_order = 0;
+            if(CountBit.charAt(1)=='1') PSK_order = 1;
+            if(CountBit.charAt(2)=='1') PSK_order = 2;
+            if(CountBit.charAt(3)=='1') PSK_order = 3;
+            if(CountBit.charAt(4)=='1') PSK_order = 4;
+            if(CountBit.charAt(5)=='1') PSK_order = 5;
+
+            PSK = calculateBitsequenceToASCIISymbols(Bits);
+
+            PSKSorted.put(PSK_order,PSK);
 
             count++;
         }
+        PSK = "        ";
+
+        for (int i=0; i<PSKSorted.size();i++){
+            PSK = PSK +" "+ PSKSorted.get(i);
+        }
+
         return PSK;
     }
 
@@ -277,7 +295,6 @@ public class Calculations {
                 AllPoints.add(new Point(x,y));
             }
         }
-        String xml = "";
     }
 
 //    public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
@@ -294,11 +311,12 @@ public class Calculations {
         int x, y;
         int pixel;
         String Bits = "";
-        String CountBit = "";
+        String UseBits = "";
+        CountBit = "";
 
         Utils.matToBitmap(simat, bmp);
 
-        for (int i = 15; i < 119; i++) {
+        for (int i = 0; i < AllPoints.size(); i++) {
 
             x = (int) AllPoints.get(i).x;
             y = (int) AllPoints.get(i).y;
@@ -310,55 +328,25 @@ public class Calculations {
             } else {
                 Bits += "0";
             }
-//
-//            if(i==24 || i==36 || i==48 || i==60 || i==72 || i==84)
-//            {
-//                if(pixel != Color.BLACK){
-//                    CountBit+="1";
-//                }
-//                else{
-//                    CountBit+="0";
-//                }
-//            }else{
-////                if(Bits.length()%7==0 )
-////                {
-////                    Bits+= "0";
-////                }
-//
-//                if (pixel != Color.BLACK) {
-//                    Bits += "1";
-//                } else {
-//                    Bits += "0";
-//                }
-//            }
-//
-//            switch(i)
-//            {
-//                case 20: i = 23; break;// CountBit
-//
-//                case 24: i = 26; break;// Next UseByte
-//                case 32: i = 35; break;// CountBit Again
-//
-//                case 36: i = 38; break;// Next UseByte Again
-//                case 44: i = 47; break;
-//
-//                case 48: i = 50; break;
-//                case 56: i = 59; break;
-//
-//                case 60: i = 62; break;
-//                case 68: i = 71; break;
-//
-//                case 72: i = 74; break;
-//                case 78: i = 83; break;
-//
-//                case 84: i = 86; break;
-//                case 92: i = 97; break;
-//
-//                case 104: i = 120; break;
-
-//            }
         }
-        return Bits;
+
+        CountBit += Bits.charAt(24);
+        CountBit += Bits.charAt(36);
+        CountBit += Bits.charAt(48);
+        CountBit += Bits.charAt(60);
+        CountBit += Bits.charAt(72);
+        CountBit += Bits.charAt(84);
+
+        UseBits += Bits.substring(14,21);
+        UseBits += Bits.substring(26,33);
+        UseBits += Bits.substring(38,45);
+        UseBits += Bits.substring(50,57);
+        UseBits += Bits.substring(62,69);
+        UseBits += Bits.substring(74,81);
+        UseBits += Bits.substring(86,93);
+        UseBits += Bits.substring(98,105);
+
+        return UseBits;
     }
 
     public String calculateBitsequenceToASCIISymbols(String Bits){
@@ -367,8 +355,11 @@ public class Calculations {
         char singleLetter;
 
         for(int i = 0; i<= Bits.length()-7; i+=7){
-            singleLetter = (char) Integer.parseInt(Bits.substring(i, i+7),2);
-            PSK += singleLetter;
+
+            if ((Bits.substring(i,i+7))!="00000000"){
+                singleLetter = (char) Integer.parseInt(Bits.substring(i, i+7),2);
+                PSK += singleLetter;
+            }
         }
         return PSK;
     }
