@@ -12,7 +12,6 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Moments;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,7 +34,6 @@ public class Calculations {
 
     private ArrayList<Point> Coordinates = new ArrayList<>();
     private ArrayList<Double> distanceList = new ArrayList<>();
-    private String Bits = "";
 
 
     private HashMap<Integer, DistancesWithPoints> DistanceWithPointsList = new HashMap<>();
@@ -51,50 +49,57 @@ public class Calculations {
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
     public String calculateSignal(ArrayList<Mat> AllMats, ArrayList<Bitmap> AllBitmaps){
+        int count = 0;
 
-        calculateBoundingBoxCenter(AllMats);
+        String PSK = "";
+        String Bits;
 
-        calculateAllDistances();
+        for(Mat SingleMat: AllMats){
 
-        determingPointsInSquare();
+            Bits = "";
 
-        C0x  = calculateColumnX(0);
-        C0y  = calculateColumnY(0);
-        C11x = calculateColumnX(11);
-        C11y = calculateColumnY(11);
 
-        calculateAllPoints();
+            calculateBoundingBoxCenter(SingleMat);
 
-        calculateLightToBitSequence(AllMats,AllBitmaps);
+            calculateAllDistances();
 
-        return calculateBitsequenceToASCIISymbols(Bits);
+            determingPointsInSquare();
+
+            C0x  = calculateColumnX(0);
+            C0y  = calculateColumnY(0);
+            C11x = calculateColumnX(11);
+            C11y = calculateColumnY(11);
+
+            calculateAllPoints();
+
+            Bits = calculateLightToBitSequence(SingleMat,AllBitmaps.get(count));
+
+            PSK = PSK + calculateBitsequenceToASCIISymbols(Bits);
+
+            count++;
+        }
+        return PSK;
     }
 
-    public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats){
+    public void calculateBoundingBoxCenter(Mat SiMat){
         ArrayList<Integer> x = new ArrayList<>();
         ArrayList<Integer> y = new ArrayList<>();
 
         Mat Mat_hierarchy = new Mat();
 
-        for (int i = 0; i<AllMats.size(); i++){
+        List<MatOfPoint> MoP_contours = new ArrayList<>();
+        Imgproc.findContours(SiMat, MoP_contours, Mat_hierarchy, 0, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0, 0));
+        Imgproc.drawContours(SiMat, MoP_contours, -1, new Scalar(255, 255, 255), -1);
 
-            // Only First Image
-            if(i==0){
-                List<MatOfPoint> MoP_contours = new ArrayList<>();
-                Imgproc.findContours(AllMats.get(i), MoP_contours,Mat_hierarchy,0, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
-                Imgproc.drawContours(AllMats.get(i),MoP_contours,-1,new Scalar(255, 255, 255),-1);
-
-                List<Moments> mu = new ArrayList<>(MoP_contours.size());
-                for(int j = 0; j<MoP_contours.size();j++) {
-                    mu.add(j, Imgproc.contourMoments(MoP_contours.get(j)));
-                    Moments p = mu.get(j);
-                    x.add((int) (p.get_m10() / p.get_m00()));
-                    y.add((int) (p.get_m01() / p.get_m00()));
-                    Coordinates.add(new Point(x.get(j), y.get(j)));
-                }
-            }
-
+        List<Moments> mu = new ArrayList<>(MoP_contours.size());
+        for (int i = 0; i < MoP_contours.size(); i++) {
+            mu.add(i, Imgproc.contourMoments(MoP_contours.get(i)));
+            Moments p = mu.get(i);
+            x.add((int) (p.get_m10() / p.get_m00()));
+            y.add((int) (p.get_m01() / p.get_m00()));
+            Coordinates.add(new Point(x.get(i), y.get(i)));
         }
+
         Mat_hierarchy.release();
     }
 
@@ -270,68 +275,74 @@ public class Calculations {
         }
     }
 
-    public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
+//    public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
+//
+//        for (int i = 0; i<AllMats.size(); i++){
+//            Utils.matToBitmap(AllMats.get(i),Bit.get(i));
+//        }
+//
+//        return Bit;
+//    }
 
-        for (int i = 0; i<AllMats.size(); i++){
-            Utils.matToBitmap(AllMats.get(i),Bit.get(i));
-        }
+    public String calculateLightToBitSequence(Mat simat,Bitmap bmp){
 
-        return Bit;
-    }
-
-    public void calculateLightToBitSequence(ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
-
-        int x,y;
+        int x, y;
         int pixel;
-        int token_synch=0;
+        int token_synch = 0;
+        String Bits = "";
 
-        for(int j=0;j<AllBitmaps.size();j++) {
-            Utils.matToBitmap(AllMats.get(j),AllBitmaps.get(j));
+        Utils.matToBitmap(simat, bmp);
 
-            for(int i=14;i<119;i++)
-            {
-                x=(int)AllPoints.get(i).x;
-                y=(int)AllPoints.get(i).y;
+        for (int i = 14; i < 119; i++) {
+            x = (int) AllPoints.get(i).x;
+            y = (int) AllPoints.get(i).y;
 
-                pixel = AllBitmaps.get(j).getPixel(x,y);
-                if(pixel!=Color.BLACK) {
-                    Bits+="1";
-                }
-                else {
-                    Bits+="0";
-                }
-                if((Bits.length()-token_synch)%56==0&&Bits.length()!=0) {
-                    Bits+="-";
-                    token_synch++;
-                }
-
-                switch(i) {
-                    //After Lamp 21 (element 20) jump to Lamp 26 (element 25) etc.
-                    case 20:i=25;break;
-                    case 32:i=37;break;
-                    case 44:i=49;break;
-                    case 56:i=61;break;
-                    case 68:i=73;break;
-                    case 80:i=85;break;
-                    case 92:i=97;break;
-                    case 104:i=120;break;
-                }
+            pixel = bmp.getPixel(x, y);
+            if (pixel != Color.BLACK) {
+                Bits += "1";
+            } else {
+                Bits += "0";
             }
 
+            switch (i) {
+                //After Lamp 21 (element 20) jump to Lamp 26 (element 25) etc.
+                case 20:
+                    i = 25;
+                    break;
+                case 32:
+                    i = 37;
+                    break;
+                case 44:
+                    i = 49;
+                    break;
+                case 56:
+                    i = 61;
+                    break;
+                case 68:
+                    i = 73;
+                    break;
+                case 80:
+                    i = 85;
+                    break;
+                case 92:
+                    i = 97;
+                    break;
+                case 104:
+                    i = 121;
+                    break;
+            }
         }
+        return Bits;
     }
 
     public String calculateBitsequenceToASCIISymbols(String Bits){
 
         String PSK = "";
-        ArrayList<String> Anzeige = new ArrayList<>(Arrays.asList(Bits.split("-")));
-        char help_char;
+        char singleLetter;
 
-        for(int j=0;j<Anzeige.size();j++) {
-            for (int i = 0; i <= Anzeige.get(j).length() - 7; i += 7) {
-                help_char = (char) Integer.parseInt(Anzeige.get(j).substring(i, i + 7), 2);
-                PSK += help_char;
-            }
+        for(int i = 0; i<= Bits.length()-7; i+=7){
+            singleLetter = (char) Integer.parseInt(Bits.substring(i, i+7),2);
+            PSK += singleLetter;
         }
         return PSK;
     }

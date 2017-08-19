@@ -43,73 +43,67 @@ public class LastActivity extends AppCompatActivity {
         mImage = (ImageView) findViewById(R.id.imV_preview);
         mText = (TextView) findViewById(R.id.PSKcode);
 
-        for(int i=0;i<6;i++)
-        {
-            Bmp_NewPictures.add(L.getThumbnail(fullPath+i+".png",getApplicationContext()));
+        for (int i = 0; i < 6; i++) {
+            Bmp_NewPictures.add(L.getThumbnail(fullPath + i + ".png", getApplicationContext()));
         }
 
         //Calculate Points
-        Mat_Pictures = bitmapToMat (Bmp_NewPictures.get(0));
+        Mat_Pictures = bitmapToMat(Bmp_NewPictures.get(0));
 
-        PSK = C.calculateSignal(Mat_Pictures,Bmp_NewPictures);
+        PSK = C.calculateSignal(Mat_Pictures, Bmp_NewPictures);
 
         //Connect Router
         mText.setText(PSK);
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
 
     }
 
 
-
-    public ArrayList<Mat> bitmapToMat(Bitmap bmp){
+    public ArrayList<Mat> bitmapToMat(Bitmap bmp) {
         ArrayList<Mat> Mat_All = new ArrayList<>();
         String filename;
 
-        Mat_All.add(new Mat((bmp.getHeight()),bmp.getWidth(), CvType.CV_8UC3));
+        for (int i = 0; i < 6; i++) {
 
-        for(int i=0;i<6;i++){
+            filename = fullPath + i + ".png";
 
-            filename=fullPath+i+".png";
+            Mat_All.add(Imgcodecs.imread(filename));
 
-            if(i==0){
-                Utils.bitmapToMat(bmp,Mat_All.get(0));
-            }
-            else {
-                Mat_All.add(i,Imgcodecs.imread(filename));
-            }
-
-//            Mat_All.add(Imgcodecs.imread(filename));
-
-            Imgproc.GaussianBlur(Mat_All.get(i), Mat_All.get(i), new Size(3,3),10);
+            Imgproc.GaussianBlur(Mat_All.get(i), Mat_All.get(i), new Size(3, 3), 10);
             Imgproc.cvtColor(Mat_All.get(i), Mat_All.get(i), Imgproc.COLOR_RGB2GRAY);
-            Core.inRange(Mat_All.get(i),LOWER_RED1,LOWER_RED2,Mat_All.get(i));
+            Core.inRange(Mat_All.get(i), LOWER_RED1, LOWER_RED2, Mat_All.get(i));
 
-            Imgproc.erode(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10,10)));
-            Imgproc.dilate(Mat_All.get(i),Mat_All.get(i),Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(30,30)));
+            Imgproc.erode(Mat_All.get(i), Mat_All.get(i), Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(10, 10)));
+            Imgproc.dilate(Mat_All.get(i), Mat_All.get(i), Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(30, 30)));
         }
         return Mat_All;
     }
 
-    public void onClickPic1(View view){
+    public void onClickPic1(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(0));
     }
-    public void onClickPic2(View view){
+
+    public void onClickPic2(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(1));
     }
-    public void onClickPic3(View view){
+
+    public void onClickPic3(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(2));
     }
-    public void onClickPic4(View view){
+
+    public void onClickPic4(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(3));
     }
-    public void onClickPic5(View view){
+
+    public void onClickPic5(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(4));
     }
-    public void onClickPic6(View view){
+
+    public void onClickPic6(View view) {
         mImage.setImageBitmap(Bmp_NewPictures.get(5));
     }
 }
