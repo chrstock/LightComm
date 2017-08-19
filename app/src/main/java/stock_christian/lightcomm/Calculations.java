@@ -32,9 +32,8 @@ public class Calculations {
         public String Position;
     }
 
-    private ArrayList<Point> Coordinates = new ArrayList<>();
-    private ArrayList<Double> distanceList = new ArrayList<>();
-
+    private ArrayList<Point> Coordinates;
+    private ArrayList<Double> distanceList;
 
     private HashMap<Integer, DistancesWithPoints> DistanceWithPointsList = new HashMap<>();
     private HashMap<String, Point> SquarePoints = new HashMap<>();
@@ -44,9 +43,7 @@ public class Calculations {
     ArrayList<Double> C11x;
     ArrayList<Double> C11y;
 
-    ArrayList<Point> AllPoints = new ArrayList<>();
-
-    private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
+    ArrayList<Point> AllPoints;
 
     public String calculateSignal(ArrayList<Mat> AllMats, ArrayList<Bitmap> AllBitmaps){
         int count = 0;
@@ -54,7 +51,14 @@ public class Calculations {
         String PSK = "";
         String Bits;
 
+
+
         for(Mat SingleMat: AllMats){
+
+            AllPoints = new ArrayList<Point>();
+            Coordinates = new ArrayList<Point>();
+            distanceList = new ArrayList<Double>();
+            DistanceWithPointsList = new HashMap<>();
 
             Bits = "";
 
@@ -273,6 +277,7 @@ public class Calculations {
                 AllPoints.add(new Point(x,y));
             }
         }
+        String xml = "";
     }
 
 //    public ArrayList<Bitmap> Morph(ArrayList<Mat> AllMats, ArrayList<Bitmap> Bit){
@@ -288,49 +293,70 @@ public class Calculations {
 
         int x, y;
         int pixel;
-        int token_synch = 0;
         String Bits = "";
+        String CountBit = "";
 
         Utils.matToBitmap(simat, bmp);
 
-        for (int i = 14; i < 119; i++) {
+        for (int i = 15; i < 119; i++) {
+
             x = (int) AllPoints.get(i).x;
             y = (int) AllPoints.get(i).y;
 
             pixel = bmp.getPixel(x, y);
+
             if (pixel != Color.BLACK) {
                 Bits += "1";
             } else {
                 Bits += "0";
             }
+//
+//            if(i==24 || i==36 || i==48 || i==60 || i==72 || i==84)
+//            {
+//                if(pixel != Color.BLACK){
+//                    CountBit+="1";
+//                }
+//                else{
+//                    CountBit+="0";
+//                }
+//            }else{
+////                if(Bits.length()%7==0 )
+////                {
+////                    Bits+= "0";
+////                }
+//
+//                if (pixel != Color.BLACK) {
+//                    Bits += "1";
+//                } else {
+//                    Bits += "0";
+//                }
+//            }
+//
+//            switch(i)
+//            {
+//                case 20: i = 23; break;// CountBit
+//
+//                case 24: i = 26; break;// Next UseByte
+//                case 32: i = 35; break;// CountBit Again
+//
+//                case 36: i = 38; break;// Next UseByte Again
+//                case 44: i = 47; break;
+//
+//                case 48: i = 50; break;
+//                case 56: i = 59; break;
+//
+//                case 60: i = 62; break;
+//                case 68: i = 71; break;
+//
+//                case 72: i = 74; break;
+//                case 78: i = 83; break;
+//
+//                case 84: i = 86; break;
+//                case 92: i = 97; break;
+//
+//                case 104: i = 120; break;
 
-            switch (i) {
-                //After Lamp 21 (element 20) jump to Lamp 26 (element 25) etc.
-                case 20:
-                    i = 25;
-                    break;
-                case 32:
-                    i = 37;
-                    break;
-                case 44:
-                    i = 49;
-                    break;
-                case 56:
-                    i = 61;
-                    break;
-                case 68:
-                    i = 73;
-                    break;
-                case 80:
-                    i = 85;
-                    break;
-                case 92:
-                    i = 97;
-                    break;
-                case 104:
-                    i = 121;
-                    break;
-            }
+//            }
         }
         return Bits;
     }
