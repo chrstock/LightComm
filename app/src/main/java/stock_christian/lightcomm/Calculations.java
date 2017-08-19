@@ -35,6 +35,7 @@ public class Calculations {
 
     private ArrayList<Point> Coordinates = new ArrayList<>();
     private ArrayList<Double> distanceList = new ArrayList<>();
+    private String Bits = "";
 
 
     private HashMap<Integer, DistancesWithPoints> DistanceWithPointsList = new HashMap<>();
@@ -49,9 +50,9 @@ public class Calculations {
 
     private static final String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
 
-    public String calculateSignal(ArrayList<Mat> Bitmaps, ArrayList<Bitmap> AllBitmaps){
+    public String calculateSignal(ArrayList<Mat> AllMats, ArrayList<Bitmap> AllBitmaps){
 
-        calculateBoundingBoxCenter(Bitmaps);
+        calculateBoundingBoxCenter(AllMats);
 
         calculateAllDistances();
 
@@ -64,8 +65,9 @@ public class Calculations {
 
         calculateAllPoints();
 
-        return calculateLightToBitSequence(Bitmaps,AllBitmaps);
+        calculateLightToBitSequence(AllMats,AllBitmaps);
 
+        return calculateBitsequenceToASCIISymbols(Bits);
     }
 
     public void calculateBoundingBoxCenter(ArrayList<Mat> AllMats){
@@ -76,6 +78,7 @@ public class Calculations {
 
         for (int i = 0; i<AllMats.size(); i++){
 
+            // Only First Image
             if(i==0){
                 List<MatOfPoint> MoP_contours = new ArrayList<>();
                 Imgproc.findContours(AllMats.get(i), MoP_contours,Mat_hierarchy,0, Imgproc.CHAIN_APPROX_SIMPLE, new Point(0,0));
@@ -276,9 +279,8 @@ public class Calculations {
         return Bit;
     }
 
-    public String calculateLightToBitSequence(ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
+    public void calculateLightToBitSequence(ArrayList<Mat> AllMats,ArrayList<Bitmap> AllBitmaps){
 
-        String bits = "";
         int x,y;
         int pixel;
         int token_synch=0;
@@ -293,13 +295,13 @@ public class Calculations {
 
                 pixel = AllBitmaps.get(j).getPixel(x,y);
                 if(pixel!=Color.BLACK) {
-                    bits+="1";
+                    Bits+="1";
                 }
                 else {
-                    bits+="0";
+                    Bits+="0";
                 }
-                if((bits.length()-token_synch)%56==0&&bits.length()!=0) {
-                    bits+="-";
+                if((Bits.length()-token_synch)%56==0&&Bits.length()!=0) {
+                    Bits+="-";
                     token_synch++;
                 }
 
@@ -317,14 +319,11 @@ public class Calculations {
             }
 
         }
-
-
-        return bits;
     }
 
-    public String calcualteBitsequenceToASCIISymbols(String Bits){
-        String PSK="";
+    public String calculateBitsequenceToASCIISymbols(String Bits){
 
+        String PSK = "";
         ArrayList<String> Anzeige = new ArrayList<>(Arrays.asList(Bits.split("-")));
         char help_char;
 
@@ -334,7 +333,6 @@ public class Calculations {
                 PSK += help_char;
             }
         }
-
         return PSK;
     }
 }

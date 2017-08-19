@@ -28,14 +28,6 @@ public class LastActivity extends AppCompatActivity {
     private TextView mText;
 
     private ArrayList<Mat> Mat_Pictures;
-    private ArrayList<Point> Poi_Coordinates;
-    private ArrayList<Double> distances;
-    private ArrayList<Double> dou_distanceSort;
-    private ArrayList<Integer> indexValue;
-    private ArrayList<Integer> det_indexValue;
-    private ArrayList<Double> Col0x,Col11x,Col0y,Col11y;
-    private ArrayList<Point> AllPoints;
-    private String BitSequence;
     private String PSK;
     private String fullPath = "/storage/emulated/0/Streams/MoreStreams/PIC";
     private ArrayList<Bitmap> Bmp_NewPictures = new ArrayList<>();
@@ -59,11 +51,7 @@ public class LastActivity extends AppCompatActivity {
         //Calculate Points
         Mat_Pictures = bitmapToMat (Bmp_NewPictures.get(0));
 
-//        C.calculateSignal(Mat_Pictures,Bmp_NewPictures);
-//        Bmp_NewPictures = C.Morph(Mat_Pictures, Bmp_NewPictures);
-
-//        BitSequence = C.calculateLightToBitSequence(AllPoints,Mat_Pictures,Bmp_NewPictures);
-        PSK = C.calcualteBitsequenceToASCIISymbols(C.calculateSignal(Mat_Pictures,Bmp_NewPictures));
+        PSK = C.calculateSignal(Mat_Pictures,Bmp_NewPictures);
 
         //Connect Router
         mText.setText(PSK);
