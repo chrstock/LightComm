@@ -78,6 +78,7 @@ public class Calculations {
             C11y = calculateColumnY(11);
 
             calculateAllPoints();
+            //
 
             Bits = calculateLightToBitSequence(SingleMat,AllBitmaps.get(count));
 
