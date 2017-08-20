@@ -50,7 +50,12 @@ public class LastActivity extends AppCompatActivity {
         PSK = C.calculateSignal(Mat_Pictures, Bmp_NewPictures);
 
         //Connect Router
-        mText.setText(PSK);
+        if (PSK.trim().equals("null")){
+            mText.setText("Keine Information erkannt");
+        }else{
+            mText.setText(PSK);
+        }
+
     }
 
     @Override
