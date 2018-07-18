@@ -75,8 +75,6 @@ public class Calculations {
             C0y = calculateColumnY(0);
             C11x = calculateColumnX(11);
             C11y = calculateColumnY(11);
-            
-            //comment
 
             calculateAllPoints();
             //
@@ -103,7 +101,7 @@ public class Calculations {
         }
 
         return PSK;
-				//another comment
+
 
     }
 
